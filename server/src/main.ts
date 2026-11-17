@@ -46,7 +46,7 @@ async function main() {
   if (existsSync(config.staticDir)) {
     app.use('/*', serveStatic({ root: config.staticDir }))
     const index = readFileSync(join(config.staticDir, 'index.html'), 'utf8')
-    app.get('*', (c) => (c.req.path.startsWith('/api/') ? c.json({ error: 'not found' }, 404) : c.html(index)))
+    app.get('*', (c) => (c.req.path.startsWith('/api/') || c.req.path.startsWith('/data/') ? c.json({ error: 'not found' }, 404) : c.html(index)))
   }
   serve({ fetch: app.fetch, port: config.port }, () =>
     console.log(`open-chess-trainer on :${config.port} · auth=${config.authMode} · db ${config.dbPath} · feedback admin ${config.adminToken ? 'on' : 'off'}${config.github ? ` · GitHub mirror → ${config.github.repo}` : ''}`))
