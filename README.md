@@ -4,7 +4,7 @@
 
 > **Status: beta.** Seven chapters (Free pieces, Mate in one, Forks, Pins, Skewers, Discovered attacks, Mate in two) with original lessons, a 2,000-puzzle Rush pool, Play vs Stockfish, game review, Stats and Feedback. More chapters are coming; see [Roadmap](#roadmap).
 
-## What it will do
+## What it does
 - **A guided course, skill by skill.** Board habits first (checks, captures, threats, undefended pieces), then forks, pins, skewers and discovered attacks, deeper tactical ideas, mating patterns, and combinations.
 - **The same six steps in every chapter:**
   1. **Understand:** a short, original lesson.
@@ -17,6 +17,12 @@
 - **Motivation:** XP, streaks, daily quests, Puzzle Rush.
 - **Play vs Stockfish** at approximate strengths, with clocks, a live material score and a game review that explains each mistake.
 - **No account needed.** Progress stays in your browser; signing in with Google adds sync across devices.
+
+| Learn: a course, chapter by chapter | Lessons with worked examples you step through |
+|---|---|
+| ![Learn](docs/screenshots/01-learn.png) | ![Lesson](docs/screenshots/02-lesson.png) |
+| **Puzzles: the opponent moves first, then you** | **Play Stockfish to apply it** |
+| ![Puzzle](docs/screenshots/04-puzzle.png) | ![Play](docs/screenshots/05-play.png) |
 
 Three measures are kept separate and never presented as a human rating:
 - **course progress:** the skills you have demonstrated;
@@ -71,6 +77,14 @@ The built pack (`app/public/data/pack.json`, CC0) and its manifest are committed
 2. **Small public beta** with friends: a beginner can understand a tactic from the lesson, solve guided examples, recognize it unannounced, and revisit mistakes, with no outside help.
 3. **More chapters** from the coverage report: removing the defender, deflection, attraction, defense, back-rank and other named mating patterns, combinations.
 4. **Then:** puzzle rating (Glicko-2, first unassisted attempts only), weakness-based quests, theme mastery, a daily puzzle.
+
+## Contributing
+Issues and pull requests are welcome, especially new lessons (`content/lessons/*.md`: original text, teaching positions validated by `pipeline/pack.py`) and curriculum chapters (`pipeline/curriculum.yaml`, sized from `pipeline/out/coverage.md`). Run the tests before opening a PR:
+```bash
+cd app && npx tsc -b && npx vitest run
+cd ../server && npx vitest run
+cd .. && .venv/bin/python -m pytest -q pipeline/tests
+```
 
 ## License
 GNU GPL v3 (`LICENSE`), as required by Stockfish and chessground. The puzzle data is CC0.
