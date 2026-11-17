@@ -31,7 +31,9 @@ export function LessonText({ ch }: { ch: Chapter }) {
       {blocks.map((b, i) => {
         if (b.kind === 'p') return b.p.type === 'Section Header'
           ? <h3 key={i} className="mt-5 mb-1 font-mono text-[12px] uppercase tracking-[.12em] text-muted">{b.p.text}</h3>
-          : <p key={i} className="mb-3">{b.p.text}</p>
+          : b.p.type === 'List Item'
+            ? <p key={i} className="mb-1.5 pl-5 -indent-4">{b.p.text}</p>
+            : <p key={i} className="mb-3">{b.p.text}</p>
         const f = b.f
         const ex = f.kind === 'example' && f.example ? examples.get(f.example) : undefined
         if (ex) return <figure key={i} className="my-5 font-mono"><ExampleStepper ex={ex} figure={f} /></figure>
@@ -100,7 +102,7 @@ export function ExampleStepper({ ex, figure }: { ex: WorkedExample; figure?: Fig
     <div className="panel flex flex-col gap-3 p-3 sm:flex-row">
       <Board fen={positions[step].fen} orientation="white" interactive={false} lastMove={positions[step].last} shapes={shapes} size={232} />
       <div className="flex min-w-0 flex-1 flex-col gap-2 text-[12px]">
-        <div className="label">{figure ? `diagram · p. ${figure.page} · step through it` : `${ex.section} · worked example · p. ${ex.page}`}</div>
+        <div className="label">{figure ? (figure.page ? `diagram · p. ${figure.page} · step through it` : 'worked example · step through it') : `${ex.section} · worked example${ex.page ? ` · p. ${ex.page}` : ''}`}</div>
         <div className="text-[13px]">
           {formatLine(ex.solution, white).split(' ').map((tok, i) => (
             <span key={i} className={i < step ? 'text-muted' : i === step ? 'bg-accent px-1 text-accent-ink' : ''}>{tok} </span>
@@ -111,7 +113,8 @@ export function ExampleStepper({ ex, figure }: { ex: WorkedExample; figure?: Fig
           <button className="btn btn-primary" disabled={step >= ex.solution_uci.length} onClick={() => setStep(step + 1)}>{step === 0 ? 'Watch the idea' : step >= ex.solution_uci.length ? 'Done' : 'Next move'} →</button>
           {step > 0 && <button className="btn btn-ghost" onClick={() => setStep(0)}>Reset</button>}
         </div>
-        {figure && <div><OriginalToggle f={figure} open={original} onToggle={() => setOriginal(!original)} /></div>}
+        {ex.answer_text && step >= ex.solution_uci.length && <p className="font-sans text-[13px] leading-relaxed text-ink/90">{ex.answer_text}</p>}
+        {figure && figure.width > 0 && <div><OriginalToggle f={figure} open={original} onToggle={() => setOriginal(!original)} /></div>}
       </div>
     </div>
   )

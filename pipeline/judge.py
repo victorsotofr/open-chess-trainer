@@ -1,13 +1,13 @@
 """Offline move judge: classify every legal move at every solver ply of a puzzle.
 
-Both the book move and each candidate are searched from the SAME position, with the
+Both the solution move and each candidate are searched from the SAME position, with the
 SAME node budget (`searchmoves`), and scored from the MOVER's perspective. Mate scores
 are compared separately from centipawns.
 
 Outcomes:
-  book          the book's move
+  solution      the reference solution's move
   accepted      also achieves the puzzle goal -> puzzle ends with "Also works"
-  slower_mate   mates, but slower than the book (not counted as a failure)
+  slower_mate   mates, but slower than the solution (not counted as a failure)
   inconclusive  too close to call at this budget, even after a deeper re-search
   rejected      fails; stored with the engine refutation line and a short reason
 """
@@ -47,7 +47,7 @@ def classify(book: Score, cand: Score) -> str:
         # A centipawn move never beats a mate. Huge advantage still fails the puzzle goal.
         return "rejected"
     if cand.mate is not None and cand.mate > 0:
-        return "accepted"  # book wins material, candidate mates: strictly better
+        return "accepted"  # solution wins material, candidate mates: strictly better
     b, m = book.cp, cand.cp
     if b >= 300:  # decisive advantage (typical tactic: wins material)
         if m >= max(300, b - max(150, int(0.3 * b))):
@@ -61,7 +61,7 @@ def classify(book: Score, cand: Score) -> str:
         if m < b - 150:
             return "rejected"
         return "inconclusive"
-    # Defensive puzzles: the book move only holds the balance.
+    # Defensive puzzles: the solution move only holds the balance.
     if m >= b - 30:
         return "accepted"
     if m < b - 120:
@@ -89,7 +89,7 @@ def explain(board: chess.Board, move: chess.Move, score: Score, pv: list[chess.M
         if captured and captured.color == board.turn:
             return f"Opponent answers {san}, winning your {PIECE_NAMES[captured.piece_type]}."
         return f"Opponent answers {san} and you no longer win material (eval {score})."
-    return f"Not good enough (eval {score} vs {book} for the book move)."
+    return f"Not good enough (eval {score} vs {book} for the solution move)."
 
 
 def analyse_move(engine, board: chess.Board, move: chess.Move, nodes: int):

@@ -26,18 +26,21 @@ Open-source chess tactics course on the Lichess puzzle database (CC0), plus play
 Durable contracts (versioned, independent of XState): `shared/session.ts` (SessionRecord), `shared/progress.ts` (AttemptEvent + deterministic fold), `shared/game.ts` (GameRecord v2), `shared/rating.ts` (Elo estimate fold). Local data is bound to one account (`bindOwner`). Pure logic: `lib/puzzle.ts`, `lib/gamify.ts`, `core/restore.ts`.
 
 ## Layout
-- `pipeline/` Python (Lichess dump → curated, verified, versioned pack). Today: `judge.py` (Stockfish verdict per legal move) + tests; coverage/curation/pack scripts come next.
+- `pipeline/` Python (venv `.venv`): `fetch.py` (download + pin the Lichess dump: `data/dump.json` sha256/date) → `coverage.py` (theme × rating-band counts, `pipeline/out/coverage.md`) → `pack.py` (curriculum selection from `pipeline/curriculum.yaml`, conversion with the setup move applied once, Stockfish verdicts via `judge.py` cached in `pipeline/out/verdicts.json`, lesson parsing/validation from `content/lessons/*.md`, Rush pool) → `app/public/data/pack.json` + `pipeline/out/pack-manifest.json`. `STOCKFISH=/path/to/stockfish` (native build).
+- `content/lessons/<slug>.md`: original lessons; `::: example` blocks (fen / moves / caption) become inline step-through boards, validated legal by `pack.py`.
 - `app/` Vite + React + TS, Tailwind v4, TanStack Router, XState, Dexie, chessground. `server/` Hono + Better Auth (Google) + better-sqlite3. `shared/` code used by both.
 
 ## Commands
 ```
 cd app && npx vitest run && npx tsc -b
 cd server && npx vitest run && npx tsc --noEmit
-python3 -m pytest -q pipeline/tests
+python3 -m pytest -q pipeline/tests            # or .venv/bin/python -m pytest
+.venv/bin/python pipeline/fetch.py && .venv/bin/python pipeline/coverage.py
+STOCKFISH=… .venv/bin/python pipeline/pack.py   # builds app/public/data/pack.json
 docker compose up --build                       # http://127.0.0.1:8090 (Colima: IPv4)
 ```
 Browser e2e scripts run on their own ports (never on a developer's running session).
 
 ## Status (2026-11-15)
-- B1 done: bootstrapped from the private app with its own identity; book pipeline, book routes and credits removed; pack loads from `/data/pack.json` (none yet → Learn shows "Puzzle pack not built yet"; Play, review, Stats, Feedback work).
-- Next (B2): string puzzle ids `lichess:<id>` through progress/session/server; puzzle record with `initialFen` + `setup` + `fen`; rename internal `book` verdict/wording; then the coverage report.
+- Done: bootstrap with own identity; data model (string ids `lichess:<id>`, `initialFen` + `setup` + `fen`, judging policy per puzzle); pipeline (fetch/coverage/pack); pilot pack: 3 chapters (Free pieces, Mate in one, Forks) × (Guided 5, On your own 12, Recognize 8 mixed, Boss 1), engine-judged, + Rush pool of 2000 reference-judged puzzles; lessons for the 3 chapters; chapter completion = fresh unassisted solves (`lib/gamify.ts` `completion`), unlocks the next chapter.
+- Next: beginner test of the pilot against the acceptance criterion; public repo + deploy (pinned pack artifact, Google OAuth client, cookie prefix `oct`); more chapters from `coverage.md`; then puzzle rating (Glicko-2), weakness quests, mastery map, daily puzzle.

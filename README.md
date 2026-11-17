@@ -2,7 +2,7 @@
 
 **A free, open-source course that teaches chess tactics step by step:** understand an idea, see it worked out, practise it with help, solve it alone, then recognize it when nobody tells you what to look for. Play Stockfish to put it into practice.
 
-> **Status: early development.** The app shell, Play vs Stockfish, game review, Stats and Feedback work today. The course content (puzzle pack and lessons) is being built; see [Roadmap](#roadmap).
+> **Status: pilot.** Three chapters (Free pieces, Mate in one, Forks) with original lessons, a 2,000-puzzle Rush pool, Play vs Stockfish, game review, Stats and Feedback. More chapters are coming; see [Roadmap](#roadmap).
 
 ## What it will do
 - **A guided course, skill by skill.** Board habits first (checks, captures, threats, undefended pieces), then forks, pins, skewers and discovered attacks, deeper tactical ideas, mating patterns, and combinations.
@@ -57,12 +57,20 @@ This project uses its own ports (8090, 5190/8790), Compose project and volume (`
 ## Feedback loop
 Users send bugs and ideas from the **Feedback** button. You and your coding agents triage them with `cd server && npm run feedback -- list | next | show | set` (needs `FEEDBACK_ADMIN_TOKEN`); the procedure is in `.agents/skills/feedback-loop/SKILL.md`. Mirroring reports to GitHub issues is optional and **off by default**.
 
+## Building the puzzle pack
+```bash
+python3 -m venv .venv && .venv/bin/python -m pip install chess zstandard pyyaml pytest
+.venv/bin/python pipeline/fetch.py       # ~310 MB Lichess dump, pinned by sha256 in data/dump.json
+.venv/bin/python pipeline/coverage.py    # pipeline/out/coverage.md: puzzles per theme and rating band
+STOCKFISH=/path/to/stockfish .venv/bin/python pipeline/pack.py   # app/public/data/pack.json
+```
+The curriculum lives in `pipeline/curriculum.yaml`, the lessons in `content/lessons/`. Selection is deterministic for a given dump checksum and `selection_version`; `pipeline/out/pack-manifest.json` records the dump, the engine and its node budget, and the pack checksum.
+
 ## Roadmap
-1. **Data model:** puzzle ids like `lichess:00sHx`; each puzzle keeps the position before and after the opponent's first move.
-2. **Coverage report** of the Lichess dump, then the curriculum.
-3. **Pilot pack:** 2–3 chapters with original lessons and engine-verified judging.
-4. **Small public beta** with friends.
-5. **More chapters, then:** puzzle rating (Glicko-2), weakness-based quests, theme mastery, daily puzzle.
+1. ~~Data model~~, ~~coverage report~~, ~~pilot pack (3 chapters)~~.
+2. **Small public beta** with friends: a beginner can understand a tactic from the lesson, solve guided examples, recognize it unannounced, and revisit mistakes, with no outside help.
+3. **More chapters** from the coverage report: pins, skewers, discovered attacks, defense, mates in two, named mating patterns, combinations.
+4. **Then:** puzzle rating (Glicko-2, first unassisted attempts only), weakness-based quests, theme mastery, a daily puzzle.
 
 ## License
 GNU GPL v3 (`LICENSE`), as required by Stockfish and chessground. The puzzle data is CC0.

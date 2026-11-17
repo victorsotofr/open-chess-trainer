@@ -29,6 +29,20 @@ export function stars(ids: PuzzleId[], progress: Progress): 0 | 1 | 2 | 3 {
 
 export const MEDALS = ['none', 'bronze', 'silver', 'gold'] as const
 
+/** Sections whose puzzles prove a skill: solved alone, from a fresh position. */
+export const PROOF_SECTIONS = ['On your own', 'Recognize it']
+
+/**
+ * Chapter completion = enough FRESH, UNASSISTED solves in the proof sections: a puzzle counts only if
+ * its very first attempt was clean (no hint, no mistake). Re-solving a memorized puzzle never counts,
+ * because "first try" is decided by the earliest attempt.
+ */
+export function completion(exs: Exercise[], progress: Progress, need: number): { fresh: number; need: number; done: boolean } {
+  const fresh = exs.filter((e) => PROOF_SECTIONS.includes(e.section) && progress.puzzles.get(e.id)?.firstTry).length
+  const target = Math.min(need, exs.filter((e) => PROOF_SECTIONS.includes(e.section)).length) || need
+  return { fresh, need: target, done: fresh >= target }
+}
+
 export function isUnlocked(index: number, prevStars: number[], freePlay: boolean): boolean {
   return freePlay || index === 0 || (prevStars[index - 1] ?? 0) >= 1
 }

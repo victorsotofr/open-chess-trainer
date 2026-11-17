@@ -1,0 +1,50 @@
+# Open Chess Trainer curriculum (pilot). Chapters are skills; rating bands only tune difficulty within one.
+# Every chapter: lesson (content/lessons/<slug>.md) -> Guided -> On your own -> Recognize (unannounced mix) -> Boss.
+# Completion counts fresh, unassisted solves in "On your own" and "Recognize".
+selection_version: 1
+quality: { min_popularity: 85, min_plays: 500, max_deviation: 85 }
+
+parts:
+  - name: "I. Board habits"
+    chapters:
+      - slug: free-pieces
+        name: "Free pieces"
+        theme: hangingPiece
+        exclude: [mate]
+        max_solver_moves: 2
+        hint: "Something is undefended. Look at every capture."
+        guided:      { n: 5,  rating: [400, 750] }
+        independent: { n: 12, rating: [500, 1050] }
+        recognize:   { n: 8,  rating: [500, 1000], mix_with: [mateIn1] }
+        boss:        { n: 1,  rating: [1050, 1250] }
+        complete_after: 12   # fresh unassisted solves (independent + recognize)
+
+      - slug: mate-in-one
+        name: "Mate in one"
+        theme: mateIn1
+        max_solver_moves: 1
+        hint: "Look at every check. Which one leaves the king no square?"
+        guided:      { n: 5,  rating: [400, 700] }
+        independent: { n: 12, rating: [450, 1100] }
+        recognize:   { n: 8,  rating: [500, 1050], mix_with: [hangingPiece] }
+        boss:        { n: 1,  rating: [1100, 1350] }
+        complete_after: 12
+
+  - name: "II. Core tactics"
+    chapters:
+      - slug: forks
+        name: "Forks"
+        theme: fork
+        exclude: [mate]
+        max_solver_moves: 2
+        hint: "Find a square where one piece attacks two targets at once."
+        guided:      { n: 5,  rating: [600, 900] }
+        independent: { n: 12, rating: [700, 1300] }
+        recognize:   { n: 8,  rating: [700, 1250], mix_with: [hangingPiece, mateIn1] }
+        boss:        { n: 1,  rating: [1300, 1550] }
+        complete_after: 12
+
+rush:
+  n: 2000
+  rating: [400, 1800]
+  max_solver_moves: 3

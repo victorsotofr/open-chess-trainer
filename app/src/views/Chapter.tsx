@@ -3,8 +3,11 @@ import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import { useApp } from '../app/data'
 import { BookGate, Credit, SectionLabel, Stars } from '../components/common'
 import { startRun } from '../core/store'
-import { stars, MEDALS } from '../lib/gamify'
+import { completion, stars, MEDALS } from '../lib/gamify'
 import { ExampleStepper, LessonText } from '../components/Lesson'
+
+const STEP: Record<string, string> = { 'Guided practice': '3', 'On your own': '4', 'Recognize it': '5' }
+const STEP_NOTE: Record<string, string> = { 'Recognize it': 'mixed, no theme announced', Boss: 'the finale' }
 
 export default function Chapter() { return <BookGate><ChapterView /></BookGate> }
 
@@ -50,21 +53,39 @@ function ChapterView() {
 
       <aside className="lg:sticky lg:top-[calc(var(--topbar)+24px)] lg:self-start">
         <button className="btn btn-primary w-full justify-center py-3" onClick={() => play()}>{started ? 'Continue' : 'Start'} chapter</button>
-        <div className="mt-6"><SectionLabel n="03">Path</SectionLabel></div>
+        {(() => {
+          const c = completion(exs, app.progress, ch.completeAfter ?? 12)
+          return (
+            <div className="mt-4 border border-line p-3" aria-label={`Chapter completion: ${c.fresh} of ${c.need} fresh solves`}>
+              <div className="flex items-baseline justify-between text-[12px]">
+                <span>{c.done ? '[ok] chapter complete' : 'To complete the chapter'}</span>
+                <span className="pixel text-[14px]">{Math.min(c.fresh, c.need)}/{c.need}</span>
+              </div>
+              <div className="mt-2 h-[3px] bg-line"><div className="h-full bg-accent" style={{ width: `${Math.min(100, (c.fresh / c.need) * 100)}%` }} /></div>
+              <p className="mt-2 text-[11px] text-faint">Fresh, unassisted solves in "On your own" and "Recognize it": first try, no hint. Repeating a puzzle doesn't count.</p>
+            </div>
+          )
+        })()}
+        <div className="mt-6"><SectionLabel n="03">Your path</SectionLabel></div>
+        <ol className="mb-4 space-y-1 text-[12px] text-muted">
+          <li><span className="text-faint">1 ·</span> Understand: read the lesson</li>
+          <li><span className="text-faint">2 ·</span> See: step through the examples</li>
+        </ol>
         <div className="space-y-5">
           {sections.map((sec) => {
             const list = exs.filter((e) => e.section === sec)
             const medal = MEDALS[stars(list.map((e) => e.id), app.progress)]
+            const step = STEP[sec]
             return (
               <div key={sec}>
-                <div className="mb-2 flex items-center justify-between text-[12px]"><span>{sec}</span><span className={`label ${medal === 'gold' ? 'text-accent' : ''}`}>{medal !== 'none' ? medal : ''}</span></div>
+                <div className="mb-2 flex items-center justify-between text-[12px]"><span>{step ? <span className="text-faint">{step} · </span> : null}{sec}{STEP_NOTE[sec] ? <span className="text-faint"> — {STEP_NOTE[sec]}</span> : null}</span><span className={`label ${medal === 'gold' ? 'text-accent' : ''}`}>{medal !== 'none' ? medal : ''}</span></div>
                 <div className="flex flex-wrap items-center gap-1.5">
                   {list.map((e, i) => {
                     const p = app.progress.puzzles.get(e.id)
-                    const boss = e.mode === 'test' && i === list.length - 1
+                    const boss = !!e.boss
                     const cls = !p ? 'border-line-strong text-muted' : p.firstTry ? 'border-accent bg-accent text-accent-ink' : 'border-ink/60 bg-ink/15'
                     return (
-                      <button key={e.id} onClick={() => play(e.id)} title={`${e.mode}${e.rating ? ` · ${e.rating}` : ''}${boss ? ' · boss' : ''}`}
+                      <button key={e.id} onClick={() => play(e.id)} title={`${sec}${e.rating ? ` · rated ${e.rating}` : ''}`}
                         className={`flex h-9 items-center justify-center border text-[11px] ${boss ? 'w-12 border-2' : 'w-9'} ${cls}`}>
                         {boss ? '♛' : e.mode === 'guided' ? 'G' : i + 1}
                       </button>
@@ -75,7 +96,8 @@ function ChapterView() {
             )
           })}
         </div>
-        <p className="mt-4 text-[11px] text-faint">G = guided (with hint) · blue = first try · grey = solved · ♛ = section boss</p>
+        <div className="mt-5 text-[12px]"><span className="text-faint">6 · </span>Revisit: missed puzzles come back in <Link to="/review" className="underline decoration-dashed underline-offset-4">Review</Link>{app.due.length ? ` (${app.due.length} due)` : ''}</div>
+        <p className="mt-4 text-[11px] text-faint">G = guided (hint available) · blue = first try · grey = solved later · ♛ = boss</p>
       </aside>
     </div>
   )

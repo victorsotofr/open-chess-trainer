@@ -8,7 +8,7 @@ import { flush } from '../core/sync'
 import { bindOwner } from '../core/store'
 import { db, getProfile, loadSession, useLive, defaultProfile, type Profile } from '../core/store'
 import { dayIn, fold, isDue, liveStreak, type Progress } from '@shared/progress'
-import { achievements, levelInfo, questsFor, questXp, stars, type Quest } from '../lib/gamify'
+import { completion, achievements, levelInfo, questsFor, questXp, stars, type Quest } from '../lib/gamify'
 import type { SessionRecord } from '@shared/session'
 import type { Exercise } from '../lib/types'
 
@@ -29,6 +29,8 @@ export interface AppData {
   session: SessionRecord | null
   byChapter: Map<number, Exercise[]>
   chapterStars: Map<number, number>
+  /** chapter -> completed (enough fresh unassisted solves); unlocks the next chapter */
+  chapterDone: Map<number, boolean>
   goalDays: number
   achievements: ReturnType<typeof achievements>
   auth: 'checking' | 'local' | 'signedIn' | 'notInvited' | 'signedOut' | 'redirecting' | 'signingOut' | 'noServer'
@@ -89,6 +91,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     exercises.forEach((e) => byChapter.set(e.chapter, [...(byChapter.get(e.chapter) ?? []), e]))
     // chapters keep the pack's order (the curriculum decides it, not the ids)
     const chapterStars = new Map([...byChapter].map(([c, xs]) => [c, stars(xs.map((x) => x.id), progress)]))
+    const chapterDone = new Map((loaded?.book.chapters ?? []).map((ch) => [ch.chapter, completion(byChapter.get(ch.chapter) ?? [], progress, ch.completeAfter ?? 12).done]))
     const goalDays = [...progress.events.reduce((m, e) => m.set(dayIn(e.finishedAt, tz), Math.max(m.get(dayIn(e.finishedAt, tz)) ?? 0, e.dailyGoal)), new Map<string, number>())]
       .filter(([d, goal]) => (progress.days.get(d) ?? 0) >= goal).length
     return {
@@ -96,7 +99,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       level: levelInfo(xp), streak: liveStreak(progress, today), todayCount: progress.days.get(today) ?? 0,
       quests: questsFor(today, progress, tz),
       due: exercises.filter((e) => { const p = progress.puzzles.get(e.id); return !!p && isDue(p, today) }),
-      session, byChapter, chapterStars, goalDays, achievements: achievements(progress, exercises, goalDays, tz),
+      session, byChapter, chapterStars, chapterDone, goalDays, achievements: achievements(progress, exercises, goalDays, tz),
       auth, me, signIn: () => authRef.send({ type: 'SIGN_IN' }), signOut: () => authRef.send({ type: 'SIGN_OUT' }),
       sync, pending, syncNow: () => syncRef.send({ type: 'FLUSH' }),
     }

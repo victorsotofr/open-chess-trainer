@@ -124,7 +124,7 @@ describe('puzzleSession', () => {
   it('Lichess setup move: fresh start highlights it and never applies it twice', () => {
     // synthetic setup move: only its squares matter here (fen is already the position after it)
     const withSetup: Exercise = { ...ex, initialFen: ex.fen.replace('6k1/', '7k/').replace(' w ', ' b '), setup: 'h8g8' }
-    const machine = puzzleSession.provide({ actors: { save: fromPromise(async () => {}) }, actions: { persist: () => {} } })
+    const machine = puzzleSession.provide({ actors: { saveAttempt: fromPromise(async () => {}) }, actions: { persist: () => {} } })
     const a = createActor(machine, { input: { ex: withSetup, attemptId: 'att-s' } }).start()
     expect(a.getSnapshot().context.fen).toBe(withSetup.fen) // solving starts at `fen`, exactly once
     expect(a.getSnapshot().context.lastMove).toEqual(['h8', 'g8'])

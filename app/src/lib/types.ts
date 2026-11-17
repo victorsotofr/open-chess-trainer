@@ -74,6 +74,9 @@ export interface Chapter {
   examples: WorkedExample[]
   figures: Figure[]
   sections: string[]
+  slug?: string
+  /** fresh unassisted solves (On your own + Recognize it) that complete the chapter */
+  completeAfter?: number
 }
 
 export interface Book {

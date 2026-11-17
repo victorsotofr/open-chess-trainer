@@ -85,7 +85,7 @@ function RunHeader({ rec, exId }: { rec: SessionRecord; exId: PuzzleId }) {
   const ch = app.loaded!.book.chapters.find((c) => c.chapter === ex.chapter)
   return (
     <div className="flex items-center justify-between gap-2">
-      <div className="label truncate">{rec.runKind === 'review' ? 'Review' : `Ch.${ex.chapter} ${ch?.name ?? ''}`} · #{ex.id}</div>
+      <div className="label truncate">{rec.runKind === 'review' ? 'Review' : ex.section === 'Recognize it' ? 'Recognize it · mixed positions' : `Ch.${ex.chapter} ${ch?.name ?? ''} · ${ex.section}`}</div>
       <div className="flex gap-[3px]" aria-label={`Puzzle ${rec.index + 1} of ${rec.queue.length}`}>
         {rec.queue.length <= 40
           ? rec.queue.map((_, i) => <span key={i} className={`h-2 w-2 border ${i < rec.index ? 'border-accent bg-accent' : i === rec.index ? 'border-ink' : 'border-line-strong'}`} />)
@@ -226,9 +226,10 @@ function BetweenPane({ rec, exId, onNext }: { rec: SessionRecord; exId: PuzzleId
           {result?.kind === 'alternative' && <div className="mt-2 text-[12px] text-good">[ok] {result.text}</div>}
         </div>
         <div className="border-t border-dashed border-line-strong pt-3">
-          <div className="label mb-1">Book line</div>
+          <div className="label mb-1">Solution</div>
           <div className="text-[13px]">{formatLine(ex.solution, solverWhite)}</div>
-          <div className="mt-2 font-sans text-[13px] leading-relaxed text-ink/85">{ex.solution_text}</div>
+          {ex.solution_text && <div className="mt-2 font-sans text-[13px] leading-relaxed text-ink/85">{ex.solution_text}</div>}
+          {ex.gameUrl && <a href={ex.gameUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block text-[12px] underline decoration-dashed underline-offset-4 hover:text-accent">See the full game on Lichess ↗</a>}
         </div>
         <button className="btn btn-primary justify-center py-3" onClick={onNext} autoFocus>{last ? 'Finish session' : 'Next puzzle'} <kbd className="text-[10px] opacity-60">↵</kbd></button>
         <div className="mt-auto border-t border-dashed border-line-strong pt-3"><Credit compact /></div>

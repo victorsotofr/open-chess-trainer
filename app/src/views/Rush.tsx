@@ -32,6 +32,8 @@ function RushView() {
   const over = state === 'over'
 
   const pool = useMemo(() => {
+    const rushPool = app.byChapter.get(0) ?? [] // the pack's Rush pool (reference-judged)
+    if (rushPool.length) return rushPool
     const chapters = app.loaded!.book.chapters.filter((c) => app.byChapter.has(c.chapter))
     const stars = chapters.map((c) => app.chapterStars.get(c.chapter) ?? 0)
     return chapters.filter((_, i) => isUnlocked(i, stars, app.profile.freePlay)).flatMap((c) => app.byChapter.get(c.chapter) ?? [])
@@ -56,7 +58,7 @@ function RushView() {
         <div className="panel p-4"><div className="label">Runs</div><div className="pixel mt-2 text-[34px]">{runs}</div></div>
         <div className="panel p-4"><div className="label">Puzzle pool</div><div className="pixel mt-2 text-[34px]">{pool.length}</div></div>
       </div>
-      <p className="mt-3 text-[11px] text-faint">Missed puzzles go to Review. Unlock more chapters to widen the pool (or turn on free play in Stats).</p>
+      <p className="mt-3 text-[11px] text-faint">Puzzles climb in difficulty as you go. Missed puzzles go to Review.</p>
       <button className="btn btn-primary mt-6 px-6 py-3" disabled={pool.length === 0} onClick={() => rush.send({ type: 'START', queue: rushQueue(pool) })}>Start rush</button>
     </div>
   )

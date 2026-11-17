@@ -1,7 +1,7 @@
 // Synthetic fixtures only: no book content in tests.
 import { describe, expect, it } from 'vitest'
 import { judgeMove, formatLine, isMateMove } from './puzzle'
-import { levelInfo, stars, isUnlocked, questsFor, questXp, achievements, weekStats } from './gamify'
+import { levelInfo, stars, isUnlocked, questsFor, questXp, achievements, weekStats, completion } from './gamify'
 import { fold, type AttemptEvent } from '@shared/progress'
 import type { Exercise } from './types'
 
@@ -127,5 +127,24 @@ describe('judging policies', () => {
   it('mate detection works after a promotion in the solution', () => {
     const promo: Exercise = { ...base, fen: '7k/P7/7K/8/8/8/8/8 w - - 0 1', solution: ['a8=Q#'], solution_uci: ['a7a8q'] }
     expect(isMateMove(promo, 0, 'a7a8q')).toBe(true)
+  })
+})
+
+describe('chapter completion', () => {
+  const mk = (i: number, section: string): Exercise => ({ ...ex, id: `t:${i}`, section, mode: section === 'Guided practice' ? 'guided' : 'test' })
+  const exs = [mk(1, 'Guided practice'), mk(2, 'On your own'), mk(3, 'On your own'), mk(4, 'Recognize it'), mk(5, 'Boss')]
+  it('counts fresh unassisted solves in the proof sections only', () => {
+    const p = fold([ev({ puzzleId: 't:1' }), ev({ puzzleId: 't:2' }), ev({ puzzleId: 't:4' }), ev({ puzzleId: 't:5' })], TZ)
+    expect(completion(exs, p, 3)).toEqual({ fresh: 2, need: 3, done: false }) // guided and boss don't count
+  })
+  it('repeating a memorized puzzle never counts: the first attempt decides', () => {
+    const miss = ev({ puzzleId: 't:3', finishedAt: '2026-11-14T09:00:00Z', result: 'failed', mistakes: 1 })
+    const resolvedLater = [1, 2, 3].map((d) => ev({ puzzleId: 't:3', finishedAt: `2026-11-1${5 + d}T09:00:00Z` }))
+    const p = fold([miss, ...resolvedLater, ev({ puzzleId: 't:2' })], TZ)
+    expect(completion(exs, p, 2)).toMatchObject({ fresh: 1, done: false })
+  })
+  it('a hinted first attempt is not unassisted', () => {
+    const p = fold([ev({ puzzleId: 't:2', result: 'hinted', hints: 1 }), ev({ puzzleId: 't:3' }), ev({ puzzleId: 't:4' })], TZ)
+    expect(completion(exs, p, 3)).toMatchObject({ fresh: 2, done: false })
   })
 })

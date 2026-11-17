@@ -50,7 +50,7 @@ export default function Home() {
           <div className="label">Mode B · lessons, progress, review</div>
           <div>
             <div className="pixel text-[44px] leading-none">LEARN</div>
-            <div className="mt-2 text-muted">21 chapters of tactics and checkmates, from free pieces to finishing like world champions.</div>
+            <div className="mt-2 text-muted">A guided tactics course: learn an idea, see it, practise it, then spot it on your own.</div>
           </div>
           <div className="flex items-end justify-between gap-4">
             <span className="text-[12px] uppercase tracking-[.1em] group-hover:text-accent">&gt; start the course</span>

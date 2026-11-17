@@ -33,6 +33,10 @@ type DoneOutput = { outcome: { kind: string; result: string } | null; puzzleId: 
 
 /** Ramp: shuffle within each chapter, then walk chapters in order (easier first). */
 export function rushQueue(pool: Exercise[], rand: () => number = Math.random): Exercise[] {
+  // rated puzzles: climb by rating with a little shuffle (±100), like Puzzle Rush
+  if (pool.length && pool.every((e) => typeof e.rating === 'number')) {
+    return pool.map((e) => ({ e, k: e.rating! + (rand() - 0.5) * 200 })).sort((a, b) => a.k - b.k).map((x) => x.e)
+  }
   const byCh = new Map<number, Exercise[]>()
   pool.forEach((e) => byCh.set(e.chapter, [...(byCh.get(e.chapter) ?? []), e]))
   const chapters = [...byCh.keys()].sort((a, b) => a - b)

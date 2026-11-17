@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { useApp } from '../app/data'
 import { BookGate, Credit, PAGE, PageHeader, SectionLabel, Squares, Stars } from '../components/common'
-import { isUnlocked } from '../lib/gamify'
+import { completion, isUnlocked } from '../lib/gamify'
 
 export default function Learn() {
   return <BookGate><LearnMap /></BookGate>
@@ -21,7 +21,7 @@ function LearnMap() {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {chapters.filter((c) => c.part === part).map((c) => {
               const i = chapters.indexOf(c)
-              const open = isUnlocked(i, starList, app.profile.freePlay)
+              const open = isUnlocked(i, chapters.map((x) => (app.chapterDone.get(x.chapter) ? 1 : 0)), app.profile.freePlay)
               const exs = app.byChapter.get(c.chapter)!
               const items = exs.map((e) => { const p = app.progress.puzzles.get(e.id); return !p ? 'empty' as const : p.firstTry ? 'clean' as const : 'done' as const })
               const solved = items.filter((x) => x !== 'empty').length
@@ -32,7 +32,7 @@ function LearnMap() {
                     {open ? <Stars n={starList[i]} /> : <span className="label">locked</span>}
                   </div>
                   <div className="mt-3 text-[14px] font-semibold">{c.name}</div>
-                  <div className="mt-1 text-[11px] text-muted">{solved}/{exs.length} solved</div>
+                  <div className="mt-1 text-[11px] text-muted">{solved}/{exs.length} solved{(() => { const k = completion(exs, app.progress, c.completeAfter ?? 12); return k.done ? ' · complete' : ` · ${k.fresh}/${k.need} to complete` })()}</div>
                   <div className="mt-3"><Squares items={items} size={7} /></div>
                 </>
               )
