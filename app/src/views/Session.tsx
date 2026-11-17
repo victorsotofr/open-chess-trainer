@@ -87,7 +87,7 @@ function RunHeader({ rec, exId }: { rec: SessionRecord; exId: PuzzleId }) {
     <div className="flex items-center justify-between gap-2">
       <div className="label truncate">{rec.runKind === 'review' ? 'Review' : ex.section === 'Recognize it' ? 'Recognize it · mixed positions' : `Ch.${ex.chapter} ${ch?.name ?? ''} · ${ex.section}`}</div>
       <div className="flex gap-[3px]" aria-label={`Puzzle ${rec.index + 1} of ${rec.queue.length}`}>
-        {rec.queue.length <= 40
+        {rec.queue.length <= 16
           ? rec.queue.map((_, i) => <span key={i} className={`h-2 w-2 border ${i < rec.index ? 'border-accent bg-accent' : i === rec.index ? 'border-ink' : 'border-line-strong'}`} />)
           : <span className="pixel text-[12px]">{rec.index + 1}/{rec.queue.length}</span>}
       </div>
@@ -161,7 +161,7 @@ function PuzzlePane({ actor, rec, onExit }: { actor: ActorRefFrom<typeof puzzleS
       <aside className="flex min-h-0 flex-col gap-4 overflow-y-auto border-t border-line p-4 md:border-l md:border-t-0 md:p-5">
         <RunHeader rec={rec} exId={ex.id} />
         <div>
-          <div className="label">{ex.section} · {ex.mode}</div>
+          <div className="label">{ex.mode === 'guided' ? 'guided · hint available' : ex.section === 'Recognize it' ? 'no theme announced' : ex.boss ? 'boss puzzle' : 'on your own'}{ex.rating ? ` · rated ${ex.rating}` : ''}</div>
           <div className="mt-2 flex items-center gap-3 text-[20px] font-semibold tracking-[.06em]" aria-live="polite">
             <span className="text-accent">&gt;</span>{status}
           </div>
