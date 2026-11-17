@@ -98,14 +98,14 @@ def analyse_move(engine, board: chess.Board, move: chess.Move, nodes: int):
 
 
 def judge_position(engine, board: chess.Board, book_move: chess.Move) -> dict:
-    book_score, book_pv = analyse_move(engine, board, book_move, NODES)
+    ref_score, book_pv = analyse_move(engine, board, book_move, NODES)
     verdicts = {}
     for mv in board.legal_moves:
         if mv == book_move:
-            verdicts[mv.uci()] = {"v": "book", "score": str(book_score)}
+            verdicts[mv.uci()] = {"v": "solution", "score": str(ref_score)}
             continue
         s, pv = analyse_move(engine, board, mv, NODES)
-        v = classify(book_score, s)
+        v = classify(ref_score, s)
         if v == "inconclusive":  # deeper, consistent re-search of both moves
             book_deep, _ = analyse_move(engine, board, book_move, NODES * DEEP)
             s, pv = analyse_move(engine, board, mv, NODES * DEEP)
@@ -120,6 +120,6 @@ def judge_position(engine, board: chess.Board, book_move: chess.Move) -> dict:
                 bb.push(x)
             entry["line"] = line
         if v == "rejected":
-            entry["why"] = explain(board, mv, s, pv, book_score)
+            entry["why"] = explain(board, mv, s, pv, ref_score)
         verdicts[mv.uci()] = entry
-    return {"book_score": str(book_score), "moves": verdicts}
+    return {"ref_score": str(ref_score), "moves": verdicts}

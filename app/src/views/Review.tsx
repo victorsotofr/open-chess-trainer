@@ -1,3 +1,4 @@
+import type { PuzzleId } from '@shared/progress'
 import { useNavigate } from '@tanstack/react-router'
 import { useApp } from '../app/data'
 import { BookGate, PAGE, PageHeader, SectionLabel } from '../components/common'
@@ -20,7 +21,7 @@ function ReviewView() {
     nav({ to: '/session' })
   }
 
-  async function practise(id: number, due: boolean) {
+  async function practise(id: PuzzleId, due: boolean) {
     await startRun({ kind: due ? 'review' : 'single', queue: [id], chapter: null, contentVersion: app.loaded!.contentVersion })
     nav({ to: '/session' })
   }

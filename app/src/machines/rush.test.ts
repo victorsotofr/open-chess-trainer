@@ -6,10 +6,10 @@ import { puzzleSession } from './puzzleSession'
 import { fold, type AttemptEvent } from '@shared/progress'
 import type { Exercise } from '../lib/types'
 
-const mk = (id: number, chapter = 1): Exercise => ({
-  id, chapter, section: 'S', mode: 'test', hint: 'h', fen: '6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1',
-  solution: ['Ra8#'], solution_uci: ['a1a8'], solution_text: '', page: 1, flags: [],
-  plies: [{ book_score: '#1', moves: { a1a8: { v: 'book', score: '#1' }, a1a2: { v: 'rejected', score: '0', why: 'Misses mate.' } } }],
+const mk = (n: number, chapter = 1): Exercise => ({
+  id: `t:${n}`, chapter, section: 'S', mode: 'test', hint: 'h', fen: '6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1',
+  solution: ['Ra8#'], solution_uci: ['a1a8'], solution_text: '', initialFen: null, setup: null, judging: 'engine' as const, flags: [],
+  plies: [{ ref_score: '#1', moves: { a1a8: { v: 'solution', score: '#1' }, a1a2: { v: 'rejected', score: '0', why: 'Misses mate.' } } }],
 })
 const tick = () => new Promise((r) => setTimeout(r, 0))
 
@@ -54,7 +54,7 @@ describe('rush', () => {
   })
   it('best score comes from history', () => {
     let n = 0
-    const ev = (runId: string, result: AttemptEvent['result']): AttemptEvent => ({ attemptId: `a${++n}`, puzzleId: n, finishedAt: `2026-11-14T10:${String(n).padStart(2, '0')}:00Z`, result,
+    const ev = (runId: string, result: AttemptEvent['result']): AttemptEvent => ({ attemptId: `a${++n}`, puzzleId: `t:${n}`, finishedAt: `2026-11-14T10:${String(n).padStart(2, '0')}:00Z`, result,
       mistakes: 0, hints: 0, ms: 1, mode: 'test', solverMoves: 1, runId, runKind: 'rush', dailyGoal: 10, deviceId: 'd' })
     const p = fold([ev('r1', 'clean'), ev('r1', 'clean'), ev('r1', 'failed'), ev('r2', 'clean')], 'Europe/Paris')
     expect(rushBest(p)).toEqual({ best: 2, runs: 2 })

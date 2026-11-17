@@ -6,15 +6,15 @@ import { puzzleSession } from './puzzleSession'
 import type { Exercise } from '../lib/types'
 import type { SessionRecord } from '@shared/session'
 
-const mk = (id: number): Exercise => ({
-  id, chapter: 1, section: 'S', mode: 'test', hint: null, fen: '6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1',
-  solution: ['Ra8#'], solution_uci: ['a1a8'], solution_text: '', page: 1, flags: [],
-  plies: [{ book_score: '#1', moves: { a1a8: { v: 'book', score: '#1' } } }],
+const mk = (n: number): Exercise => ({
+  id: `t:${n}`, chapter: 1, section: 'S', mode: 'test', hint: null, fen: '6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1',
+  solution: ['Ra8#'], solution_uci: ['a1a8'], solution_text: '', initialFen: null, setup: null, judging: 'engine' as const, flags: [],
+  plies: [{ ref_score: '#1', moves: { a1a8: { v: 'solution', score: '#1' } } }],
 })
-const exercises = new Map([1, 2, 3].map((i) => [i, mk(i)]))
+const exercises = new Map([1, 2, 3].map((i) => [`t:${i}`, mk(i)]))
 const record = (p: Partial<SessionRecord> = {}): SessionRecord => ({
   id: 'learn', schemaVersion: 1, contentVersion: 'v', deviceId: 'd', runId: 'r', runKind: 'chapter', chapter: 1,
-  queue: [1, 2, 3], index: 0, puzzle: null, startedAt: '', updatedAt: '', ...p,
+  queue: ['t:1', 't:2', 't:3'], index: 0, puzzle: null, startedAt: '', updatedAt: '', ...p,
 })
 const flush = () => new Promise((r) => setTimeout(r, 0))
 
@@ -46,14 +46,14 @@ describe('run', () => {
   })
 
   it('resumes into "between" when the current puzzle was already saved', () => {
-    const { actor } = start(record({ index: 1, puzzle: { puzzleId: 2, puzzleKey: 'x', attemptId: 'a', moves: ['a1a8'], hints: 0, mistakes: 0,
+    const { actor } = start(record({ index: 1, puzzle: { puzzleId: 't:2', puzzleKey: 'x', attemptId: 'a', moves: ['a1a8'], hints: 0, mistakes: 0,
       revealed: false, outcome: { kind: 'solved', result: 'clean', finishedAt: '', text: '' }, saved: true, startedAt: '' } }))
     expect(actor.getSnapshot().value).toBe('between')
   })
 
-  it('drops puzzles that no longer exist in the book', () => {
-    const { actor } = start(record({ queue: [99, 2], index: 0 }))
-    expect(actor.getSnapshot().context.record.queue).toEqual([2])
+  it('drops puzzles that no longer exist in the pack', () => {
+    const { actor } = start(record({ queue: ['t:99', 't:2'], index: 0 }))
+    expect(actor.getSnapshot().context.record.queue).toEqual(['t:2'])
   })
 
   it('stopping the run stops the child puzzle', () => {

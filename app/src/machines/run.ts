@@ -1,3 +1,4 @@
+import type { PuzzleId } from '@shared/progress'
 /**
  * run — a learning session over a queue frozen at start (chapter, review or single puzzle).
  *
@@ -13,11 +14,11 @@ import { puzzleSession } from './puzzleSession'
 
 export interface RunContext {
   record: SessionRecord
-  exercises: Map<number, Exercise>
+  exercises: Map<PuzzleId, Exercise>
   attemptKey: number // bumps to re-invoke a fresh child for the next puzzle
 }
 
-export interface RunInput { record: SessionRecord; exercises: Map<number, Exercise> }
+export interface RunInput { record: SessionRecord; exercises: Map<PuzzleId, Exercise> }
 
 export type RunEvent = { type: 'NEXT' } | { type: 'EXIT' }
 

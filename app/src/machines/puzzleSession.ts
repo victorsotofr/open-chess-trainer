@@ -63,6 +63,9 @@ export type PuzzleEvent =
 const resultOf = (c: PuzzleContext, kind: Outcome['kind']): AttemptResult =>
   c.mistakes > 0 ? 'failed' : kind === 'revealed' || c.revealed || c.hints > 0 ? 'hinted' : 'clean'
 
+/** The opponent's setup move as [from, to], for the last-move highlight. */
+export const setupSquares = (ex: Exercise): [string, string] | undefined => (ex.setup ? [ex.setup.slice(0, 2), ex.setup.slice(2, 4)] : undefined)
+
 function sanToSquares(fen: string, san: string) {
   const mv = new Chess(fen).move(san)
   return { from: mv.from, to: mv.to }
@@ -105,9 +108,10 @@ export const puzzleSession = setup({
     if (r && r.puzzleKey === puzzleKey(input.ex)) {
       const rp = replay(input.ex, r.moves)
       return { ...base, attemptId: r.attemptId, startedAt: r.startedAt, moves: r.moves, k: rp.k, fen: rp.fen,
-        lastMove: rp.lastMove, hints: r.hints, mistakes: r.mistakes, revealed: !!r.revealed, outcome: r.outcome }
+        lastMove: rp.lastMove ?? setupSquares(input.ex), hints: r.hints, mistakes: r.mistakes, revealed: !!r.revealed, outcome: r.outcome }
     }
-    return { ...base, startedAt: new Date().toISOString(), moves: [], k: 0, fen: input.ex.fen, hints: 0, mistakes: 0, revealed: false, outcome: null }
+    // `fen` is already AFTER the opponent's setup move: it is never applied here (only highlighted)
+    return { ...base, startedAt: new Date().toISOString(), moves: [], k: 0, fen: input.ex.fen, lastMove: setupSquares(input.ex), hints: 0, mistakes: 0, revealed: false, outcome: null }
   },
   initial: 'boot',
   states: {

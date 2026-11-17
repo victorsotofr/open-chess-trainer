@@ -5,6 +5,7 @@
  */
 import { Hono, type Context } from 'hono'
 import { isGameRecord } from '../../shared/game'
+import { isPuzzleId } from '../../shared/progress'
 import { FEEDBACK_STATUS, isFeedbackStatus, validateFeedback, type FeedbackInput, type FeedbackItem } from '../../shared/feedback'
 import { createHash, timingSafeEqual } from 'node:crypto'
 import type { GitHub } from './github'
@@ -34,10 +35,10 @@ const sameSecret = (a: string, b: string) => timingSafeEqual(createHash('sha256'
 const isAllowed = (config: Config, u: User) =>
   config.authMode === 'local' || !config.allowedEmails || (!!u.email && config.allowedEmails.includes(u.email.toLowerCase()))
 
-function isEvent(e: unknown): e is { attemptId: string; finishedAt: string; puzzleId: number } {
+function isEvent(e: unknown): e is { attemptId: string; finishedAt: string; puzzleId: string } {
   const x = e as Record<string, unknown>
   return !!x && typeof x.attemptId === 'string' && x.attemptId.length <= 100 && typeof x.finishedAt === 'string'
-    && !Number.isNaN(Date.parse(x.finishedAt)) && typeof x.puzzleId === 'number'
+    && !Number.isNaN(Date.parse(x.finishedAt)) && isPuzzleId(x.puzzleId)
 }
 
 export function createApp({ config, db, resolveUser, authHandler, gh, log = console.error }: Deps) {

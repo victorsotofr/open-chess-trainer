@@ -23,7 +23,7 @@ export const CLOSED_STATUSES: FeedbackStatus[] = ['done', 'wontfix', 'duplicate'
 /** Attached automatically (the user can untick it). Never contains book content or progress data. */
 export interface FeedbackContext {
   route: string
-  puzzleId?: number | null
+  puzzleId?: string | null
   runKind?: string | null
   gameId?: string | null
   build: string

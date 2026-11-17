@@ -5,7 +5,7 @@ import { db, commitAttempt, startRun, savePuzzleRecord, loadSession, exportProgr
 import type { PuzzleProgressRecord } from '@shared/session'
 
 const rec = (p: Partial<PuzzleProgressRecord> = {}): PuzzleProgressRecord => ({
-  puzzleId: 1, puzzleKey: 'k', attemptId: 'att-1', moves: ['d5g8'], hints: 0, mistakes: 0, revealed: false, saved: false,
+  puzzleId: 't:1', puzzleKey: 'k', attemptId: 'att-1', moves: ['d5g8'], hints: 0, mistakes: 0, revealed: false, saved: false,
   startedAt: '2026-11-14T10:00:00Z', outcome: { kind: 'solved', result: 'clean', finishedAt: '2026-11-14T10:00:30Z', text: '' }, ...p,
 })
 
@@ -13,7 +13,7 @@ beforeEach(async () => { db.close(); await Dexie.delete('open-chess-trainer'); a
 
 describe('store', () => {
   it('commit is idempotent per attemptId (double submit counts once)', async () => {
-    await startRun({ kind: 'chapter', queue: [1, 2], chapter: 1, contentVersion: 'v' })
+    await startRun({ kind: 'chapter', queue: ['t:1', 't:2'], chapter: 1, contentVersion: 'v' })
     await savePuzzleRecord(rec())
     await commitAttempt(rec(), { solverMoves: 2, mode: 'test' })
     await commitAttempt(rec(), { solverMoves: 2, mode: 'test' })
@@ -23,7 +23,7 @@ describe('store', () => {
   })
 
   it('commit is atomic: a failure inside the transaction leaves nothing behind', async () => {
-    await startRun({ kind: 'chapter', queue: [1], chapter: 1, contentVersion: 'v' })
+    await startRun({ kind: 'chapter', queue: ['t:1'], chapter: 1, contentVersion: 'v' })
     await savePuzzleRecord(rec())
     const bad = rec({ outcome: { kind: 'solved', result: 'clean', finishedAt: 'not-a-date', text: '' } })
     const orig = db.outbox.put.bind(db.outbox)
@@ -77,7 +77,7 @@ describe('v1 → v2 migration', () => {
     v1.close()
     await db.open()
     const evs = await db.events.toArray()
-    expect(evs.map((e) => e.puzzleId).sort((a, b) => a - b)).toEqual([2, 27])
+    expect(evs.map((e) => e.puzzleId).sort()).toEqual(['legacy:2', 'legacy:27'])
     expect(await getProfile()).toMatchObject({ dailyGoal: 7, freePlay: true })
   })
 })

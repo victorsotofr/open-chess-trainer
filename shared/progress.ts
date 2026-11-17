@@ -13,12 +13,16 @@
  *  - days/streaks use the user's IANA timezone
  */
 
+/** Namespaced puzzle id, e.g. "lichess:00sHx" (never a number assigned from selection order). */
+export type PuzzleId = string
+export const isPuzzleId = (x: unknown): x is PuzzleId => typeof x === 'string' && /^[a-z]+:[A-Za-z0-9_-]{1,40}$/.test(x)
+
 export type AttemptResult = 'clean' | 'hinted' | 'failed'
 export type RunKind = 'chapter' | 'review' | 'single' | 'rush'
 
 export interface AttemptEvent {
   attemptId: string // stable across retries / reloads / restores
-  puzzleId: number
+  puzzleId: PuzzleId
   finishedAt: string // ISO instant
   result: AttemptResult
   mistakes: number
@@ -33,7 +37,7 @@ export interface AttemptEvent {
 }
 
 export interface PuzzleProgress {
-  puzzleId: number
+  puzzleId: PuzzleId
   attempts: number
   solved: boolean
   firstTry: boolean // earliest attempt was clean
@@ -44,7 +48,7 @@ export interface PuzzleProgress {
 }
 
 export interface Progress {
-  puzzles: Map<number, PuzzleProgress>
+  puzzles: Map<PuzzleId, PuzzleProgress>
   xp: number
   xpLog: { day: string; xp: number }[] // per-day totals, ascending
   days: Map<string, number> // local day -> puzzles finished
@@ -106,7 +110,7 @@ function schedule(p: Pick<PuzzleProgress, 'box' | 'due'>, result: AttemptResult,
 
 export function fold(input: AttemptEvent[], timeZone: string): Progress {
   const events = orderEvents(input)
-  const puzzles = new Map<number, PuzzleProgress>()
+  const puzzles = new Map<PuzzleId, PuzzleProgress>()
   const days = new Map<string, number>()
   const xpByDay = new Map<string, number>()
   const comboByRun = new Map<string, number>()

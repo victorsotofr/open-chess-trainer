@@ -1,3 +1,4 @@
+import type { PuzzleId } from '@shared/progress'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useActorRef, useSelector } from '@xstate/react'
@@ -78,7 +79,7 @@ function useKey(map: Record<string, () => void>) {
   })
 }
 
-function RunHeader({ rec, exId }: { rec: SessionRecord; exId: number }) {
+function RunHeader({ rec, exId }: { rec: SessionRecord; exId: PuzzleId }) {
   const app = useApp()
   const ex = app.loaded!.byId.get(exId)!
   const ch = app.loaded!.book.chapters.find((c) => c.chapter === ex.chapter)
@@ -105,7 +106,10 @@ function PuzzlePane({ actor, rec, onExit }: { actor: ActorRefFrom<typeof puzzleS
   const solverWhite = ex.fen.split(' ')[1] === 'w'
   const toMove = new Chess(c.fen).turn() === 'w' ? 'WHITE' : 'BLACK'
   const [promo, setPromo] = useState<{ from: string; to: string } | null>(null)
-  const playing = value === 'playing'
+  // fresh start only: show the position before the opponent's move, then let the board animate it
+  const [intro, setIntro] = useState(() => !!(ex.setup && ex.initialFen && c.moves.length === 0 && !c.outcome))
+  useEffect(() => { if (!intro) return; const t = setTimeout(() => setIntro(false), 650); return () => clearTimeout(t) }, [intro])
+  const playing = value === 'playing' && !intro
   const book = ex.solution_uci[2 * c.k]
 
   const shapes = useMemo<DrawShape[]>(() => {
@@ -139,8 +143,8 @@ function PuzzlePane({ actor, rec, onExit }: { actor: ActorRefFrom<typeof puzzleS
     <>
       <div className={`flex min-h-0 items-center justify-center p-3 md:p-6 ${value === 'wrong' ? 'shake' : ''}`} >
         <div className="h-[min(60dvh,calc(100vw-16px))] w-full md:h-full">
-          <Board fen={c.fen} orientation={solverWhite ? 'white' : 'black'} interactive={playing} onMove={onMove}
-            shapes={shapes} lastMove={c.lastMove} highlight={highlight} flash={flash} />
+          <Board fen={intro ? ex.initialFen! : c.fen} orientation={solverWhite ? 'white' : 'black'} interactive={playing} onMove={onMove}
+            shapes={intro ? [] : shapes} lastMove={intro ? undefined : c.lastMove} highlight={intro ? [] : highlight} flash={flash} />
         </div>
         {promo && (
           <div className="fixed inset-0 z-30 flex items-center justify-center bg-bg/70" onClick={() => setPromo(null)}>
@@ -190,7 +194,7 @@ function comboOf(app: ReturnType<typeof useApp>, rec: SessionRecord) {
   return last ? app.progress.perEvent.get(last.attemptId)?.combo ?? 0 : 0
 }
 
-function BetweenPane({ rec, exId, onNext }: { rec: SessionRecord; exId: number; onNext: () => void }) {
+function BetweenPane({ rec, exId, onNext }: { rec: SessionRecord; exId: PuzzleId; onNext: () => void }) {
   const app = useApp()
   const ex = app.loaded!.byId.get(exId)!
   // the child persisted the finished puzzle to the durable record; read it live

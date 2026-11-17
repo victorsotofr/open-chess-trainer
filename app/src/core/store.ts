@@ -8,7 +8,7 @@
  */
 import Dexie, { liveQuery, type Table } from 'dexie'
 import { useEffect, useState } from 'react'
-import type { AttemptEvent, RunKind } from '@shared/progress'
+import type { AttemptEvent, PuzzleId, RunKind } from '@shared/progress'
 import { START_FEN, type GameRecord } from '@shared/game'
 import { SESSION_SCHEMA_VERSION, upgradeSession, type PuzzleProgressRecord, type SessionRecord } from '@shared/session'
 
@@ -52,7 +52,7 @@ class ChessDB extends Dexie {
         const deviceId = crypto.randomUUID()
         await tx.table('settings').put(defaultProfile({ deviceId, dailyGoal: prof?.dailyGoal ?? 10, freePlay: !!prof?.freePlay }))
         await tx.table('events').bulkPut(old.map((a, i): AttemptEvent => ({
-          attemptId: `v1-${i}-${a.at}`, puzzleId: a.puzzleId, finishedAt: a.at, result: a.result, mistakes: a.mistakes, hints: a.hints,
+          attemptId: `v1-${i}-${a.at}`, puzzleId: `legacy:${a.puzzleId}`, finishedAt: a.at, result: a.result, mistakes: a.mistakes, hints: a.hints,
           ms: a.ms, mode: 'test', solverMoves: 1, runId: `v1-${a.at}`, runKind: a.review ? 'review' : 'chapter', dailyGoal: prof?.dailyGoal ?? 10, deviceId })))
       })
     // v3: games vs the computer (guest-friendly, device-local)
@@ -101,7 +101,7 @@ export async function loadSession(): Promise<SessionRecord | null> {
   return up.record
 }
 
-export async function startRun(o: { kind: RunKind; queue: number[]; chapter: number | null; contentVersion: string; startIndex?: number }) {
+export async function startRun(o: { kind: RunKind; queue: PuzzleId[]; chapter: number | null; contentVersion: string; startIndex?: number }) {
   const p = await getProfile()
   const now = new Date().toISOString()
   const rec: SessionRecord = { id: 'learn', schemaVersion: SESSION_SCHEMA_VERSION, contentVersion: o.contentVersion, deviceId: p.deviceId,

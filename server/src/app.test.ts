@@ -10,7 +10,7 @@ const STRANGER: User = { id: 'u2', email: 'other@example.com', name: 'Other' }
 function app(user: User | null, cfg: Partial<Config> = {}) {
   return createApp({ config: { ...base, ...cfg }, db: openDb(':memory:'), resolveUser: async () => user })
 }
-const ev = (id: string) => ({ attemptId: id, puzzleId: 1, finishedAt: '2026-11-14T10:00:00Z', result: 'clean' })
+const ev = (id: string) => ({ attemptId: id, puzzleId: 'lichess:00sHx', finishedAt: '2026-11-14T10:00:00Z', result: 'clean' })
 const req = (a: ReturnType<typeof app>, path: string, init?: RequestInit) => a.request(path, init)
 const post = (body: unknown) => ({ method: 'POST', body: JSON.stringify(body), headers: { 'content-type': 'application/json' } })
 
@@ -48,6 +48,11 @@ describe('progress', () => {
     expect(r1).toMatchObject({ inserted: 2, total: 2 })
     expect(r2).toMatchObject({ inserted: 0, total: 2, acked: ['a1', 'a2', 'a1'] })
     expect((await (await req(a, '/api/progress')).json()).events).toHaveLength(2)
+  })
+  it('puzzle ids must be namespaced strings (lichess:<id>), never numbers', async () => {
+    expect((await req(app(ME), '/api/events', post({ events: [{ ...ev('n1'), puzzleId: 27 }] }))).status).toBe(400)
+    expect((await req(app(ME), '/api/events', post({ events: [{ ...ev('n2'), puzzleId: 'no-namespace' }] }))).status).toBe(400)
+    expect((await req(app(ME), '/api/events', post({ events: [ev('n3')] }))).status).toBe(200)
   })
   it('rejects malformed events', async () => {
     expect((await req(app(ME), '/api/events', post({ events: [{ attemptId: 'x' }] }))).status).toBe(400)

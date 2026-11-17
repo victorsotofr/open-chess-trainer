@@ -1,3 +1,4 @@
+import type { PuzzleId } from '@shared/progress'
 import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import { useApp } from '../app/data'
 import { BookGate, Credit, SectionLabel, Stars } from '../components/common'
@@ -16,7 +17,7 @@ function ChapterView() {
   const exs = app.byChapter.get(n) ?? []
   if (!ch) return <div className="p-8">Chapter not found. <Link to="/learn" className="underline">Back</Link></div>
 
-  async function play(startId?: number) {
+  async function play(startId?: PuzzleId) {
     const queue = exs.map((e) => e.id)
     const first = startId ?? exs.find((e) => !app.progress.puzzles.get(e.id)?.solved)?.id ?? queue[0]
     await startRun({ kind: 'chapter', queue, chapter: n, contentVersion: app.loaded!.contentVersion, startIndex: queue.indexOf(first) })
@@ -63,9 +64,9 @@ function ChapterView() {
                     const boss = e.mode === 'test' && i === list.length - 1
                     const cls = !p ? 'border-line-strong text-muted' : p.firstTry ? 'border-accent bg-accent text-accent-ink' : 'border-ink/60 bg-ink/15'
                     return (
-                      <button key={e.id} onClick={() => play(e.id)} title={`#${e.id} · ${e.mode}${boss ? ' · boss' : ''}`}
+                      <button key={e.id} onClick={() => play(e.id)} title={`${e.mode}${e.rating ? ` · ${e.rating}` : ''}${boss ? ' · boss' : ''}`}
                         className={`flex h-9 items-center justify-center border text-[11px] ${boss ? 'w-12 border-2' : 'w-9'} ${cls}`}>
-                        {boss ? '♛' : e.mode === 'guided' ? 'G' : e.id}
+                        {boss ? '♛' : e.mode === 'guided' ? 'G' : i + 1}
                       </button>
                     )
                   })}

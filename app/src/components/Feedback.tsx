@@ -26,7 +26,7 @@ const KIND_LABEL: Record<FeedbackKind, string> = { bug: 'Bug', idea: 'Idea', oth
 
 async function gatherContext(auth: string, theme: string): Promise<FeedbackContext> {
   const route = location.pathname
-  let puzzleId: number | null = null, runKind: string | null = null, gameId: string | null = null
+  let puzzleId: string | null = null, runKind: string | null = null, gameId: string | null = null
   try {
     if (route === '/session') {
       const s = await db.sessions.get('learn')

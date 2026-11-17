@@ -87,7 +87,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const exercises = loaded?.book.exercises ?? []
     const byChapter = new Map<number, Exercise[]>()
     exercises.forEach((e) => byChapter.set(e.chapter, [...(byChapter.get(e.chapter) ?? []), e]))
-    byChapter.forEach((v) => v.sort((a, b) => a.id - b.id))
+    // chapters keep the pack's order (the curriculum decides it, not the ids)
     const chapterStars = new Map([...byChapter].map(([c, xs]) => [c, stars(xs.map((x) => x.id), progress)]))
     const goalDays = [...progress.events.reduce((m, e) => m.set(dayIn(e.finishedAt, tz), Math.max(m.get(dayIn(e.finishedAt, tz)) ?? 0, e.dailyGoal)), new Map<string, number>())]
       .filter(([d, goal]) => (progress.days.get(d) ?? 0) >= goal).length

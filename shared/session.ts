@@ -5,20 +5,20 @@
  * machine definitions can change freely. Restore = replay these facts through the pure
  * puzzle logic (app/src/core/restore.ts).
  */
-import type { AttemptResult, RunKind } from './progress'
+import type { AttemptResult, PuzzleId, RunKind } from './progress'
 
 export const SESSION_SCHEMA_VERSION = 1
 
 export interface PuzzleProgressRecord {
-  puzzleId: number
-  /** fen + book line; if the book data changes for this puzzle, the record is closed as "restarted". */
+  puzzleId: PuzzleId
+  /** fen + solution line; if the pack changes this puzzle, the record is closed as "restarted". */
   puzzleKey: string
   attemptId: string
-  /** Solver moves on the board, in order (UCI). Opponent replies are re-derived from the book. */
+  /** Solver moves on the board, in order (UCI), after the setup move. Opponent replies are re-derived from the solution. */
   moves: string[]
   hints: number // 0..3
   mistakes: number
-  /** true if a book move had to be revealed (engine inconclusive): the attempt can't be clean */
+  /** true if a solution move had to be revealed (engine inconclusive): the attempt can't be clean */
   revealed: boolean
   /** Set once the puzzle is over; `saved` flips true when the attempt event is committed. */
   outcome: null | { kind: 'solved' | 'alternative' | 'revealed' | 'failed'; result: AttemptResult; finishedAt: string; text: string }
@@ -29,12 +29,12 @@ export interface PuzzleProgressRecord {
 export interface SessionRecord {
   id: 'learn' // one active learning session per device
   schemaVersion: number
-  contentVersion: string // hash of book.json the session was built against
+  contentVersion: string // hash of the puzzle pack the session was built against
   deviceId: string
   runId: string
   runKind: RunKind
   chapter: number | null
-  queue: number[] // frozen at start
+  queue: PuzzleId[] // frozen at start
   index: number // position in queue
   puzzle: PuzzleProgressRecord | null
   startedAt: string

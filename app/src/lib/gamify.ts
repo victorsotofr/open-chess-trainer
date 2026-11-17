@@ -2,7 +2,7 @@
  * Gamification as pure functions of (events → Progress) and the book.
  * Everything here is deterministic, so it is identical on every device after sync.
  */
-import { dayIn, type AttemptEvent, type Progress } from '@shared/progress'
+import { dayIn, type AttemptEvent, type Progress, type PuzzleId } from '@shared/progress'
 import type { Exercise } from './types'
 
 export const TITLES = ['Pawn', 'Knight', 'Bishop', 'Rook', 'Queen', 'King', 'Candidate Master', 'Master']
@@ -20,7 +20,7 @@ export function levelInfo(xp: number) {
 }
 
 /** ★ all solved · ★★ ≥80% first try · ★★★ 100% first try. Also used for section medals. */
-export function stars(ids: number[], progress: Progress): 0 | 1 | 2 | 3 {
+export function stars(ids: PuzzleId[], progress: Progress): 0 | 1 | 2 | 3 {
   if (ids.length === 0) return 0
   if (!ids.every((id) => progress.puzzles.get(id)?.solved)) return 0
   const first = ids.filter((id) => progress.puzzles.get(id)?.firstTry).length / ids.length
@@ -89,10 +89,10 @@ function bestRush(progress: Progress): number {
 export function achievements(progress: Progress, exercises: Exercise[], goalDays: number, timeZone = 'UTC'): Achievement[] {
   const solved = [...progress.puzzles.values()].filter((p) => p.solved).length
   const clean = progress.events.some((e) => e.result === 'clean')
-  const bySection = new Map<string, number[]>()
+  const bySection = new Map<string, PuzzleId[]>()
   exercises.forEach((e) => bySection.set(e.section, [...(bySection.get(e.section) ?? []), e.id]))
-  const forks = exercises.filter((e) => e.chapter === 5).map((e) => e.id)
-  const chapters = new Map<number, number[]>()
+  const forks = exercises.filter((e) => e.themes?.includes('fork')).map((e) => e.id)
+  const chapters = new Map<number, PuzzleId[]>()
   exercises.forEach((e) => chapters.set(e.chapter, [...(chapters.get(e.chapter) ?? []), e.id]))
   const anyChapter = [...chapters.values()].some((ids) => stars(ids, progress) >= 1)
   const anyGoldSection = [...bySection.values()].some((ids) => ids.length >= 3 && stars(ids, progress) === 3)

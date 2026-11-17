@@ -1,4 +1,6 @@
-export type Verdict = 'book' | 'accepted' | 'slower_mate' | 'inconclusive' | 'rejected'
+import type { PuzzleId } from '@shared/progress'
+
+export type Verdict = 'solution' | 'accepted' | 'slower_mate' | 'inconclusive' | 'rejected'
 
 export interface MoveVerdict {
   v: Verdict
@@ -8,23 +10,32 @@ export interface MoveVerdict {
 }
 
 export interface PlyJudgement {
-  book_score: string
+  ref_score: string
   moves: Record<string, MoveVerdict> // uci -> verdict
 }
 
 export interface Exercise {
-  id: number
+  id: PuzzleId // e.g. "lichess:00sHx"
   chapter: number
   section: string
   mode: 'guided' | 'test'
   hint: string | null
-  fen: string
-  solution: string[] // SAN, full line incl. opponent replies
+  /** position before the opponent's setup move (Lichess FEN); null for original teaching puzzles */
+  initialFen: string | null
+  /** the opponent's move that leads to the puzzle (UCI), animated once on start; null if none */
+  setup: string | null
+  fen: string // where solving starts (after the setup move)
+  solution: string[] // SAN, from `fen`, incl. opponent replies
   solution_uci: string[]
-  solution_text: string // the book's solution with commentary
-  page: number
+  solution_text: string // shown after the puzzle
   flags: string[]
-  plies: PlyJudgement[] // one per solver move (solution indices 0, 2, 4, ...)
+  /** "engine": precomputed Stockfish verdicts in `plies`; "reference": solution + any mate */
+  judging: 'engine' | 'reference'
+  plies: PlyJudgement[] // one per solver move when judging="engine"; may be empty otherwise
+  rating?: number
+  themes?: string[]
+  gameUrl?: string
+  boss?: boolean
 }
 
 export interface WorkedExample {

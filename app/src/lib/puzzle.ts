@@ -1,3 +1,4 @@
+import { Chess } from 'chess.js'
 import type { Exercise, MoveVerdict } from './types'
 
 /** Outcome of one solver move, decided from the precomputed Stockfish verdicts. */
@@ -14,7 +15,24 @@ export const solverIndex = (k: number) => 2 * k
 
 export const solverMoves = (ex: Exercise) => Math.ceil(ex.solution_uci.length / 2)
 
-/** Judge the solver's k-th move (0-based). */
+/** Does `uci` give checkmate in the position before the solver's k-th move? */
+export function isMateMove(ex: Exercise, k: number, uci: string): boolean {
+  try {
+    const g = new Chess(ex.fen)
+    for (const u of ex.solution_uci.slice(0, solverIndex(k))) g.move({ from: u.slice(0, 2), to: u.slice(2, 4), promotion: u[4] })
+    g.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] ?? 'q' })
+    return g.isCheckmate()
+  } catch { return false }
+}
+
+const MISMATCH: MoveVerdict = { v: 'rejected', score: '', why: "Doesn't match the solution." }
+
+/**
+ * Judge the solver's k-th move (0-based).
+ * Policy "engine": the solution move, else the stored Stockfish verdict for this move.
+ * Policy "reference" (no verdicts): the solution move; any legal checkmate also wins (as on Lichess);
+ * anything else "doesn't match the solution" — never an invented refutation.
+ */
 export function judgeMove(ex: Exercise, k: number, uci: string): MoveOutcome {
   const i = solverIndex(k)
   const book = ex.solution_uci[i]
@@ -23,8 +41,9 @@ export function judgeMove(ex: Exercise, k: number, uci: string): MoveOutcome {
     const done = i + 2 >= ex.solution_uci.length
     return { kind: 'correct', done, reply: done ? undefined : reply }
   }
+  if (isMateMove(ex, k, uci)) return { kind: 'alternative', verdict: { v: 'accepted', score: '#', why: 'Checkmate.' } }
   const verdict = ex.plies[k]?.moves[uci]
-  if (!verdict) return { kind: 'unknown' }
+  if (!verdict) return ex.judging === 'reference' ? { kind: 'wrong', verdict: MISMATCH } : { kind: 'unknown' }
   switch (verdict.v) {
     case 'accepted':
       return { kind: 'alternative', verdict }
@@ -32,7 +51,7 @@ export function judgeMove(ex: Exercise, k: number, uci: string): MoveOutcome {
       return { kind: 'slower_mate', verdict }
     case 'inconclusive':
       return { kind: 'inconclusive', verdict, bookMove: book }
-    case 'book': // promotion-equivalent spellings
+    case 'solution': // promotion-equivalent spellings
       return { kind: 'correct', done: i + 2 >= ex.solution_uci.length, reply: ex.solution_uci[i + 1] }
     default:
       return { kind: 'wrong', verdict }

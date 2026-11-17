@@ -7,18 +7,18 @@ import type { PuzzleProgressRecord } from '@shared/session'
 import { puzzleKey } from '../core/restore'
 
 const ex: Exercise = {
-  id: 1, chapter: 18, section: 'Mate in two', mode: 'test', hint: 'Sacrifice first.',
+  id: 't:1', chapter: 18, section: 'Mate in two', mode: 'test', hint: 'Sacrifice first.',
   fen: '6rk/6pp/8/3Q4/8/8/8/5RK1 w - - 0 1',
-  solution: ['Qxg8+', 'Kxg8', 'Rf8#'], solution_uci: ['d5g8', 'h8g8', 'f1f8'], solution_text: '', page: 1, flags: [],
+  solution: ['Qxg8+', 'Kxg8', 'Rf8#'], solution_uci: ['d5g8', 'h8g8', 'f1f8'], solution_text: '', initialFen: null, setup: null, judging: 'engine' as const, flags: [],
   plies: [
-    { book_score: '#2', moves: {
-      d5g8: { v: 'book', score: '#2' },
+    { ref_score: '#2', moves: {
+      d5g8: { v: 'solution', score: '#2' },
       d5d8: { v: 'rejected', score: '-900', why: 'Opponent answers Rxd8, winning your queen.', line: ['Rxd8'] },
       d5e5: { v: 'accepted', score: '#2' },
       d5d7: { v: 'slower_mate', score: '#4' },
       d5c5: { v: 'inconclusive', score: '+400' },
     } },
-    { book_score: '#1', moves: { f1f8: { v: 'book', score: '#1' } } },
+    { ref_score: '#1', moves: { f1f8: { v: 'solution', score: '#1' } } },
   ],
 }
 
@@ -121,8 +121,18 @@ describe('puzzleSession', () => {
     expect(again.getSnapshot().context.k).toBe(1)
   })
 
+  it('Lichess setup move: fresh start highlights it and never applies it twice', () => {
+    // synthetic setup move: only its squares matter here (fen is already the position after it)
+    const withSetup: Exercise = { ...ex, initialFen: ex.fen.replace('6k1/', '7k/').replace(' w ', ' b '), setup: 'h8g8' }
+    const machine = puzzleSession.provide({ actors: { save: fromPromise(async () => {}) }, actions: { persist: () => {} } })
+    const a = createActor(machine, { input: { ex: withSetup, attemptId: 'att-s' } }).start()
+    expect(a.getSnapshot().context.fen).toBe(withSetup.fen) // solving starts at `fen`, exactly once
+    expect(a.getSnapshot().context.lastMove).toEqual(['h8', 'g8'])
+    a.stop()
+  })
+
   it('restores "solver moved, reply pending" onto the solver turn', () => {
-    const restore: PuzzleProgressRecord = { puzzleId: 1, puzzleKey: puzzleKey(ex), attemptId: 'att-old', moves: ['d5g8'], hints: 1,
+    const restore: PuzzleProgressRecord = { puzzleId: 't:1', puzzleKey: puzzleKey(ex), attemptId: 'att-old', moves: ['d5g8'], hints: 1,
       mistakes: 0, revealed: false, outcome: null, saved: false, startedAt: '2026-11-14T10:00:00Z' }
     const { actor } = start({ restore })
     const s = actor.getSnapshot()
@@ -132,7 +142,7 @@ describe('puzzleSession', () => {
   })
 
   it('restores a finished-but-unsaved attempt straight into saving (same attemptId)', async () => {
-    const restore: PuzzleProgressRecord = { puzzleId: 1, puzzleKey: puzzleKey(ex), attemptId: 'att-old', moves: ['d5g8', 'f1f8'], hints: 0,
+    const restore: PuzzleProgressRecord = { puzzleId: 't:1', puzzleKey: puzzleKey(ex), attemptId: 'att-old', moves: ['d5g8', 'f1f8'], hints: 0,
       mistakes: 0, revealed: false, outcome: { kind: 'solved', result: 'clean', finishedAt: '2026-11-14T10:01:00Z', text: 'Puzzle solved.' }, saved: false, startedAt: '2026-11-14T10:00:00Z' }
     const { actor, saved } = start({ restore })
     await flush()
@@ -141,7 +151,7 @@ describe('puzzleSession', () => {
   })
 
   it('ignores a record for a changed puzzle (content updated) and starts fresh', () => {
-    const restore = { puzzleId: 1, puzzleKey: 'stale', attemptId: 'att-old', moves: ['d5g8'], hints: 2, mistakes: 1, revealed: false, outcome: null, saved: false, startedAt: 'x' }
+    const restore = { puzzleId: 't:1', puzzleKey: 'stale', attemptId: 'att-old', moves: ['d5g8'], hints: 2, mistakes: 1, revealed: false, outcome: null, saved: false, startedAt: 'x' }
     const { actor } = start({ restore })
     expect(actor.getSnapshot().context).toMatchObject({ k: 0, hints: 0, mistakes: 0, attemptId: 'att-1' })
   })

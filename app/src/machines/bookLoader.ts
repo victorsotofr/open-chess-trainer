@@ -5,8 +5,9 @@
  */
 import { assign, fromPromise, setup } from 'xstate'
 import type { Book, Exercise } from '../lib/types'
+import type { PuzzleId } from '@shared/progress'
 
-export interface LoadedBook { book: Book; byId: Map<number, Exercise>; contentVersion: string }
+export interface LoadedBook { book: Book; byId: Map<PuzzleId, Exercise>; contentVersion: string }
 class HttpError extends Error { constructor(public status: number) { super(`HTTP ${status}`) } }
 
 export async function fetchBook(url = '/data/pack.json'): Promise<LoadedBook> {
