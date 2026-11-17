@@ -1,0 +1,20 @@
+# Lichess dump and generated packs (built by pipeline/, published as pinned artifacts)
+data/
+app/public/data/
+pipeline/out/
+# Engine source (cloned separately)
+engine/Stockfish/
+# Tooling
+.venv/
+node_modules/
+dist/
+.DS_Store
+__pycache__/
+engine/build.log
+# runtime data and secrets
+var/
+server/var/
+server/var-dev.log
+.env
+.env.*
+!.env.example

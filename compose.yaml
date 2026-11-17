@@ -1,0 +1,28 @@
+# Open Chess Trainer: one container (web app + API) on http://127.0.0.1:8090
+# Own project name and volume: never shares data with other local apps.
+name: chess-puzzles
+services:
+  web:
+    build:
+      context: .
+      args:
+        GIT_SHA: ${GIT_SHA:-nogit}      # GIT_SHA=$(git rev-parse --short HEAD) docker compose up --build
+    image: open-chess-trainer:latest
+    ports:
+      - "${PORT:-8090}:8080"
+    environment:
+      AUTH_MODE: ${AUTH_MODE:-local}        # explicit: "local" (single user) or "google"
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-}
+      ALLOWED_EMAILS: ${ALLOWED_EMAILS:-}
+      FEEDBACK_ADMIN_TOKEN: ${FEEDBACK_ADMIN_TOKEN:-}   # enables the admin API + `npm run feedback`
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}                   # optional (off at first): mirror feedback to GitHub issues
+      GITHUB_REPO: ${GITHUB_REPO:-}
+    volumes:
+      - db:/data/db                 # named volume (chess-puzzles_db): writable by the app user, survives rebuilds
+    restart: unless-stopped
+
+volumes:
+  db:

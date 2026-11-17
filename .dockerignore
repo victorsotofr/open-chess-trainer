@@ -1,0 +1,15 @@
+# never send secrets, raw dumps or local state to the build
+**/node_modules
+data
+pipeline
+engine
+app/public/data
+app/dist
+var
+server/var
+server/var-dev.log
+.venv
+.git
+.env
+.env.*
+**/*.sqlite*
