@@ -2,7 +2,7 @@
 
 **A free, open-source course that teaches chess tactics step by step:** understand an idea, see it worked out, practise it with help, solve it alone, then recognize it when nobody tells you what to look for. Play Stockfish to put it into practice.
 
-> **Status: pilot.** Three chapters (Free pieces, Mate in one, Forks) with original lessons, a 2,000-puzzle Rush pool, Play vs Stockfish, game review, Stats and Feedback. More chapters are coming; see [Roadmap](#roadmap).
+> **Status: beta.** Seven chapters (Free pieces, Mate in one, Forks, Pins, Skewers, Discovered attacks, Mate in two) with original lessons, a 2,000-puzzle Rush pool, Play vs Stockfish, game review, Stats and Feedback. More chapters are coming; see [Roadmap](#roadmap).
 
 ## What it will do
 - **A guided course, skill by skill.** Board habits first (checks, captures, threats, undefended pieces), then forks, pins, skewers and discovered attacks, deeper tactical ideas, mating patterns, and combinations.
@@ -64,12 +64,12 @@ python3 -m venv .venv && .venv/bin/python -m pip install chess zstandard pyyaml 
 .venv/bin/python pipeline/coverage.py    # pipeline/out/coverage.md: puzzles per theme and rating band
 STOCKFISH=/path/to/stockfish .venv/bin/python pipeline/pack.py   # app/public/data/pack.json
 ```
-The curriculum lives in `pipeline/curriculum.yaml`, the lessons in `content/lessons/`. Selection is deterministic for a given dump checksum and `selection_version`; `pipeline/out/pack-manifest.json` records the dump, the engine and its node budget, and the pack checksum.
+The built pack (`app/public/data/pack.json`, CC0) and its manifest are committed, so the Docker image needs no pipeline run. The curriculum lives in `pipeline/curriculum.yaml`, the lessons in `content/lessons/`. Selection is deterministic for a given dump checksum and `selection_version`; `pipeline/out/pack-manifest.json` records the dump, the engine and its node budget, and the pack checksum.
 
 ## Roadmap
-1. ~~Data model~~, ~~coverage report~~, ~~pilot pack (3 chapters)~~.
+1. ~~Data model~~, ~~coverage report~~, ~~pilot pack~~, ~~7 chapters~~.
 2. **Small public beta** with friends: a beginner can understand a tactic from the lesson, solve guided examples, recognize it unannounced, and revisit mistakes, with no outside help.
-3. **More chapters** from the coverage report: pins, skewers, discovered attacks, defense, mates in two, named mating patterns, combinations.
+3. **More chapters** from the coverage report: removing the defender, deflection, attraction, defense, back-rank and other named mating patterns, combinations.
 4. **Then:** puzzle rating (Glicko-2, first unassisted attempts only), weakness-based quests, theme mastery, a daily puzzle.
 
 ## License

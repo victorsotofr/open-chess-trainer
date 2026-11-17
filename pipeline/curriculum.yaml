@@ -44,6 +44,55 @@ parts:
         boss:        { n: 1,  rating: [1300, 1550] }
         complete_after: 12
 
+      - slug: pins
+        name: "Pins"
+        theme: pin
+        exclude: [mate]
+        max_solver_moves: 2
+        hint: "A piece is stuck in front of its king or queen. Attack it again."
+        guided:      { n: 5,  rating: [750, 1000] }
+        independent: { n: 12, rating: [800, 1400] }
+        recognize:   { n: 8,  rating: [800, 1350], mix_with: [fork, hangingPiece] }
+        boss:        { n: 1,  rating: [1400, 1650] }
+        complete_after: 12
+
+      - slug: skewers
+        name: "Skewers"
+        theme: skewer
+        exclude: [mate]
+        max_solver_moves: 2
+        hint: "Two pieces on one line, the valuable one in front. Attack it, preferably with check."
+        guided:      { n: 5,  rating: [650, 950] }
+        independent: { n: 12, rating: [700, 1350] }
+        recognize:   { n: 8,  rating: [750, 1300], mix_with: [pin, fork] }
+        boss:        { n: 1,  rating: [1350, 1600] }
+        complete_after: 12
+
+      - slug: discovered-attacks
+        name: "Discovered attacks"
+        theme: discoveredAttack
+        exclude: [mate]
+        max_solver_moves: 2
+        hint: "Move the piece in front out of the way, and make that move count too."
+        guided:      { n: 5,  rating: [750, 1000] }
+        independent: { n: 12, rating: [800, 1400] }
+        recognize:   { n: 8,  rating: [800, 1350], mix_with: [fork, skewer] }
+        boss:        { n: 1,  rating: [1400, 1650] }
+        complete_after: 12
+
+  - name: "III. Mates"
+    chapters:
+      - slug: mate-in-two
+        name: "Mate in two"
+        theme: mateIn2
+        max_solver_moves: 2
+        hint: "Start with checks. After each one, list every reply: is it mate next move?"
+        guided:      { n: 5,  rating: [450, 800] }
+        independent: { n: 12, rating: [500, 1200] }
+        recognize:   { n: 8,  rating: [550, 1150], mix_with: [mateIn1, fork] }
+        boss:        { n: 1,  rating: [1200, 1450] }
+        complete_after: 12
+
 rush:
   n: 2000
   rating: [400, 1800]

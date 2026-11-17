@@ -1,7 +1,10 @@
 # Lichess dump and generated packs (built by pipeline/, published as pinned artifacts)
-data/
-app/public/data/
-pipeline/out/
+/data/
+app/public/data/*
+!app/public/data/pack.json
+pipeline/out/*
+!pipeline/out/pack-manifest.json
+!pipeline/out/coverage.md
 # Engine source (cloned separately)
 engine/Stockfish/
 # Tooling

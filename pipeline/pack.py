@@ -96,8 +96,8 @@ def parse_lesson(slug: str, chapter: int) -> tuple[list[dict], list[dict], list[
                 if mv not in board.legal_moves:
                     raise ValueError(f"{ex_id}: illegal move {u}")
                 sans.append(board.san(mv)); board.push(mv)
-            if slug == "mate-in-one" and not board.is_checkmate():
-                raise ValueError(f"{ex_id}: a mate-in-one example must end in checkmate")
+            if slug.startswith("mate-in") and not board.is_checkmate():
+                raise ValueError(f"{ex_id}: a mate example must end in checkmate")
             examples.append({"id": ex_id, "section": "Worked example", "page": 0, "fen": fields["fen"], "solution": sans,
                              "solution_uci": ucis, "answer_text": fields.get("caption", ""), "inline": True})
             figures.append({"file": ex_id, "page": 0, "width": 0, "height": 0, "source": "image", "kind": "example", "example": ex_id})
@@ -108,9 +108,10 @@ def parse_lesson(slug: str, chapter: int) -> tuple[list[dict], list[dict], list[
                 continue  # chapter title comes from the curriculum
             if para.startswith("## "):
                 paragraphs.append({"type": "Section Header", "text": para[3:].strip(), "page": 0})
-            elif re.match(r"^\d+\. ", para):
+            elif re.match(r"^(\d+\.|-) ", para):
                 for item in para.split("\n"):
-                    paragraphs.append({"type": "List Item", "text": re.sub(r"\*\*(.+?)\*\*", r"\1", item.strip()), "page": 0})
+                    item = re.sub(r"^- ", "• ", item.strip())
+                    paragraphs.append({"type": "List Item", "text": re.sub(r"\*\*(.+?)\*\*", r"\1", item), "page": 0})
             else:
                 paragraphs.append({"type": "Text", "text": re.sub(r"\*\*(.+?)\*\*", r"\1", " ".join(para.split("\n"))), "page": 0})
     return paragraphs, examples, figures

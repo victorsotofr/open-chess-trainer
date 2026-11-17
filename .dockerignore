@@ -3,7 +3,8 @@
 data
 pipeline
 engine
-app/public/data
+app/public/data/*
+!app/public/data/pack.json
 app/dist
 var
 server/var

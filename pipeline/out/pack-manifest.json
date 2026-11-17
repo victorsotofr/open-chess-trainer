@@ -1,0 +1,21 @@
+{
+ "pack": "pack.json",
+ "pack_sha256": "4abc217cd31160275ca12214b3ff9a22d82a1753df38da5e6226cf58593bc320",
+ "bytes": 2323634,
+ "dump_sha256": "7b0d235fa40cfd7fdb7df1fec56a96b3b6ee1496b32ed2eb05be90d0ebf94253",
+ "dump_date": "Sun, 01 Nov 2026 07:57:40 GMT",
+ "selection_version": 1,
+ "quality": {
+  "min_popularity": 85,
+  "min_plays": 500,
+  "max_deviation": 85
+ },
+ "engine": "Stockfish dev-20261114-1e7e6bde",
+ "nodes": 800000,
+ "counts": {
+  "chapters": 7,
+  "curriculum": 182,
+  "rush": 2000,
+  "examples": 11
+ }
+}

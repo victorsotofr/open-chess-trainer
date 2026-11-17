@@ -27,6 +27,8 @@ COPY --from=build /src/server/node_modules /app/server/node_modules
 COPY --from=build /src/server/src /app/server/src
 COPY --from=build /src/shared /app/shared
 COPY --from=build /src/app/dist /app/web
+# the pinned puzzle pack (CC0, committed with its manifest: pipeline/out/pack-manifest.json)
+COPY app/public/data/pack.json /app/web/data/pack.json
 RUN mkdir -p /data/db && chown -R node:node /data
 # run from the server package so `--import tsx` resolves from its node_modules
 WORKDIR /app/server
